@@ -127,7 +127,7 @@ steps:
   inputs:
     connectedServiceName: 'nickgraham101_vsmarketplace'
     fileType: vsix
-    vsixFile: '$(System.DefaultWorkingDirectory)/release/bin/esfadevops.DependencyCheck-*.vsix'
+    vsixFile: '$(System.DefaultWorkingDirectory)/release/bin/NickGraham.DependencyCheck-*.vsix'
     publisherId: NickGraham
     extensionId: 'DependencyCheck'
     updateTasksVersion: false
