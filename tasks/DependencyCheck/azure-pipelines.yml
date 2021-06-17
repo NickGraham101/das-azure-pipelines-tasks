@@ -128,7 +128,7 @@ steps:
     connectedServiceName: 'nickgraham101_vsmarketplace'
     fileType: vsix
     vsixFile: '$(System.DefaultWorkingDirectory)/release/bin/esfadevops.DependencyCheck-*.vsix'
-    publisherId: esfadevops
+    publisherId: NickGraham
     extensionId: 'DependencyCheck'
     updateTasksVersion: false
 - task: PublishPipelineArtifact@1
