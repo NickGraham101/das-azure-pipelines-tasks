@@ -13,11 +13,11 @@ pr: none
 workspace:
   clean: all
 
-variables:
-  - group: 'Prod Shared Resources'
+#variables:
+#  - group: 'Prod Shared Resources'
 
 pool:
-  name: 'DAS - Continuous Integration'
+  vmImage: 'windows-latest'
 
 steps:
 - task: UseGitVersion@5
@@ -63,45 +63,45 @@ steps:
   inputs:
     rootFolder: '$(System.DefaultWorkingDirectory)/tasks/DependencyCheck'
     outputPath: '$(System.DefaultWorkingDirectory)/release/bin'
-- task: DownloadGitHubRelease@0
-  displayName: 'Download GitHub Release'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-  inputs:
-    connection: SFA
-    userRepository: 'SkillsFundingAgency/das-platform-automation'
-    defaultVersionType: specificTag
-    version: 3.0.0
-- task: AzurePowerShell@4
-  displayName: 'Azure PowerShell script: $(System.ArtifactsDirectory)/New-StorageAccountSASToken.ps1'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-  inputs:
-    azureSubscription: SFA-DIG-Prod-ARM
-    ScriptPath: '$(System.ArtifactsDirectory)/New-StorageAccountSASToken.ps1'
-    ScriptArguments: '-ResourceGroup "$(SharedResourceGroupName)" -StorageAccount "$(SharedStorageAccountName)" -Service "$(StorageAccountService)" -ResourceType "$(StorageAccountResourceType)" -Permissions "$(StorageAccountPermissions)" -ExpiryInMinutes "$(SasUriExpiryInMinutes)" -OutputVariable "WriteStorageAccountContainerSasUri"'
-    azurePowerShellVersion: LatestVersion
-    pwsh: true
-- powershell: |
-   Copy-Item "$(System.DefaultWorkingDirectory)/temp-tests" -Destination "$(System.DefaultWorkingDirectory)/tasks/DependencyCheck/task/tests" -Recurse
-   $Path = "$(System.DefaultWorkingDirectory)/tasks/DependencyCheck/task"
-   $Value = @"
-   enableVulnerabilityFilesMaintenance=true
-   writeStorageAccountContainerSasUri=https://$(SharedStorageAccountName).$(StorageAccountService).core.windows.net/$(StorageAccountContainerName)$($ENV:WRITE_STORAGE_ACCOUNT_CONTAINER_SAS_URI)
-   logAnalyticsWorkspaceId=placeholder
-   logAnalyticsWorkspaceKey=placeholder
-   enableSelfHostedVulnerabilityFiles=placeholder
-   readStorageAccountContainerSasUri=placeholder
-   scanPath=placeholder
-   excludedScanPathPatterns=placeholder
-   severityThreshold=placeholder
-   dependencyCheckDashboardUrl=placeholder
-   "@
-   New-Item -Path $Path -Name ".env" -Value $Value
-   Get-Content -Path "$($Path)/.env"
-   Rename-Item "$(System.DefaultWorkingDirectory)/tasks/DependencyCheck/task" "$(System.DefaultWorkingDirectory)/tasks/DependencyCheck/$($ENV:GITVERSION_MAJORMINORPATCH)"
-  env:
-    WRITE_STORAGE_ACCOUNT_CONTAINER_SAS_URI: $(WriteStorageAccountContainerSasUri)
-  displayName: 'PowerShell Script: Restore tests folder, add a .env file for npm test, renamed task folder to GITVERSION_MAJORMINORPATCH'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+# - task: DownloadGitHubRelease@0
+#   displayName: 'Download GitHub Release'
+#   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+#   inputs:
+#     connection: SFA
+#     userRepository: 'SkillsFundingAgency/das-platform-automation'
+#     defaultVersionType: specificTag
+#     version: 3.0.0
+# - task: AzurePowerShell@4
+#   displayName: 'Azure PowerShell script: $(System.ArtifactsDirectory)/New-StorageAccountSASToken.ps1'
+#   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+#   inputs:
+#     azureSubscription: SFA-DIG-Prod-ARM
+#     ScriptPath: '$(System.ArtifactsDirectory)/New-StorageAccountSASToken.ps1'
+#     ScriptArguments: '-ResourceGroup "$(SharedResourceGroupName)" -StorageAccount "$(SharedStorageAccountName)" -Service "$(StorageAccountService)" -ResourceType "$(StorageAccountResourceType)" -Permissions "$(StorageAccountPermissions)" -ExpiryInMinutes "$(SasUriExpiryInMinutes)" -OutputVariable "WriteStorageAccountContainerSasUri"'
+#     azurePowerShellVersion: LatestVersion
+#     pwsh: true
+# - powershell: |
+#    Copy-Item "$(System.DefaultWorkingDirectory)/temp-tests" -Destination "$(System.DefaultWorkingDirectory)/tasks/DependencyCheck/task/tests" -Recurse
+#    $Path = "$(System.DefaultWorkingDirectory)/tasks/DependencyCheck/task"
+#    $Value = @"
+#    enableVulnerabilityFilesMaintenance=true
+#    writeStorageAccountContainerSasUri=https://$(SharedStorageAccountName).$(StorageAccountService).core.windows.net/$(StorageAccountContainerName)$($ENV:WRITE_STORAGE_ACCOUNT_CONTAINER_SAS_URI)
+#    logAnalyticsWorkspaceId=placeholder
+#    logAnalyticsWorkspaceKey=placeholder
+#    enableSelfHostedVulnerabilityFiles=placeholder
+#    readStorageAccountContainerSasUri=placeholder
+#    scanPath=placeholder
+#    excludedScanPathPatterns=placeholder
+#    severityThreshold=placeholder
+#    dependencyCheckDashboardUrl=placeholder
+#    "@
+#    New-Item -Path $Path -Name ".env" -Value $Value
+#    Get-Content -Path "$($Path)/.env"
+#    Rename-Item "$(System.DefaultWorkingDirectory)/tasks/DependencyCheck/task" "$(System.DefaultWorkingDirectory)/tasks/DependencyCheck/$($ENV:GITVERSION_MAJORMINORPATCH)"
+#   env:
+#     WRITE_STORAGE_ACCOUNT_CONTAINER_SAS_URI: $(WriteStorageAccountContainerSasUri)
+#   displayName: 'PowerShell Script: Restore tests folder, add a .env file for npm test, renamed task folder to GITVERSION_MAJORMINORPATCH'
+#   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 - task: Npm@1
   displayName: 'npm install'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
@@ -125,7 +125,7 @@ steps:
   displayName: 'Publish Extension'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
-    connectedServiceName: 'Visual Studio Marketplace (VSTS)'
+    connectedServiceName: 'nickgraham101_vsmarketplace'
     fileType: vsix
     vsixFile: '$(System.DefaultWorkingDirectory)/release/bin/esfadevops.DependencyCheck-*.vsix'
     publisherId: esfadevops
